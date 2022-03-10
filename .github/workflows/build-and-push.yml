@@ -1,0 +1,48 @@
+name: Build Images
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.generate.outputs.tag }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - id: generate
+      run: echo "tag=$(./hack/image-tag)" >> $GITHUB_OUTPUT
+
+  build:
+    runs-on: ubuntu-latest
+    needs: generate
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Login to Alicloud Docker registry
+      uses: docker/login-action@v2
+      with:
+        registry: registry.cn-shanghai.aliyuncs.com
+        username: ${{ secrets.ALI_REGISTRY_USER }}
+        password: ${{ secrets.ALI_REGISTRY_PASS }}
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Build and push Docker images
+      run: |
+        GOPROXY=https://proxy.golang.org,direct TAG=${{needs.generate.outputs.image-tag}} make csi.push
+      env:
+        TARGET: ${{ github.event.inputs.target }}
+#    - name: Build and push snapshotv1 Docker images
+#      run: |
+#        git config user.email "test@example.com"
+#        git config user.name "test"
+#        git checkout -b jibu-cherry-pick
+#        git cherry-pick 689eb6eb037821505dcd5288e7a08e51e97c4f15
+#        GOPROXY=https://proxy.golang.org,direct TAG=${{needs.generate.outputs.image-tag}}-snapshotv1 make csi.push
+#      env:
+#        TARGET: ${{ github.event.inputs.target }}

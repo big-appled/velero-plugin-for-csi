@@ -30,6 +30,11 @@ GCR_IMAGE ?= $(GCR_REGISTRY)/$(BIN)
 # that pull base images from different registries.
 VELERO_DOCKERFILE ?= Dockerfile
 
+# Jibu version and tag
+IMAGE_TAG:=$(shell ./hack/image-tag)
+TAG ?= ${IMAGE_TAG}
+JIBU_IMG ?= registry.cn-shanghai.aliyuncs.com/jibutech/velero-plugin-for-csi:$(TAG)
+
 # Which architecture to build - see $(ALL_ARCH) for options.
 # if the 'local' rule is being run, detect the ARCH from 'go env'
 # if it wasn't specified by the caller.
@@ -141,3 +146,9 @@ changelog:
 clean:
 	@echo "cleaning"
 	rm -rf .go _output
+
+csi.image:
+	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t $(JIBU_IMG) .
+
+csi.push:
+	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t $(JIBU_IMG) --push .
