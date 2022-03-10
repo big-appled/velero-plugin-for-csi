@@ -22,6 +22,12 @@ IMAGE_NAME ?= $(REGISTRY)/velero-plugin-for-csi
 TAG ?= dev
 
 IMAGE ?= $(IMAGE_NAME):$(TAG)
+IMAGE_JIBU = registry.cn-shanghai.aliyuncs.com/jibudata/velero-plugin-for-csi:v0.2.0-jibu-9f21dd3
+
+# Jibu version and tag
+IMAGE_TAG:=$(shell ./hack/image-tag)
+TAG ?= ${IMAGE_TAG}
+JIBU_IMG ?= registry.cn-shanghai.aliyuncs.com/jibutech/velero-plugin-for-csi:$(TAG)
 
 # Which architecture to build - see $(ALL_ARCH) for options.
 # if the 'local' rule is being run, detect the ARCH from 'go env'
@@ -75,6 +81,7 @@ shell: build-dirs
 		-v $$(pwd)/.go/std/$(GOOS)_$(GOARCH):/usr/local/go/pkg/$(GOOS)_$(GOARCH)_static \
 		-v "$$(pwd)/.go/go-build:/.cache/go-build:delegated" \
 		-e CGO_ENABLED=0 \
+		-e GOPROXY=https://goproxy.cn,direct \
 		-w /go/src/velero-plugin-for-csi \
 		$(BUILD_IMAGE) \
 		/bin/sh $(CMD)
@@ -84,9 +91,9 @@ build-dirs:
 	@mkdir -p .go/src/$(PKG) .go/pkg .go/bin .go/std/$(GOOS)/$(GOARCH) .go/go-build
 
 .PHONY: container
-container: all build-dirs
+container: #all build-dirs
 	cp Dockerfile _output/bin/$(GOOS)/$(GOARCH)/Dockerfile
-	docker build -t $(IMAGE) -f _output/bin/$(GOOS)/$(GOARCH)/Dockerfile _output/bin/$(GOOS)/$(GOARCH)
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE_JIBU) . --push
 
 .PHONY: push
 push: container
@@ -126,3 +133,9 @@ changelog:
 clean:
 	@echo "cleaning"
 	rm -rf .go _output
+
+csi.image:
+	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.ci -t $(JIBU_IMG) .
+
+csi.push: csi.image
+	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.ci -t $(JIBU_IMG) --push .
