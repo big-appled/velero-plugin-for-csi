@@ -197,7 +197,12 @@ func GetVolumeSnapshotClassForStorageClass(provisioner string, snapshotClasses *
 	// https://github.com/kubernetes-csi/external-snapshotter/blob/release-4.2/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
 	for _, sc := range snapshotClasses.Items {
 		_, hasLabelSelector := sc.Labels[VolumeSnapshotClassSelectorLabel]
-		if sc.Driver == provisioner {
+		provisionerInAnnotation, hasProvisionerAnnotation := sc.Annotations[VolumeSnapshotClassProvisionerAnnotation]
+		scProvisioner := sc.Driver
+		if hasProvisionerAnnotation {
+			scProvisioner = provisionerInAnnotation
+		}
+		if scProvisioner == provisioner {
 			n += 1
 			vsclass = sc
 			if hasLabelSelector {
