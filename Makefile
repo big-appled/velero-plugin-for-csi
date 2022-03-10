@@ -75,6 +75,7 @@ shell: build-dirs
 		-v $$(pwd)/.go/std/$(GOOS)_$(GOARCH):/usr/local/go/pkg/$(GOOS)_$(GOARCH)_static \
 		-v "$$(pwd)/.go/go-build:/.cache/go-build:delegated" \
 		-e CGO_ENABLED=0 \
+		-e GOPROXY=https://goproxy.cn,direct \
 		-w /go/src/velero-plugin-for-csi \
 		$(BUILD_IMAGE) \
 		/bin/sh $(CMD)
@@ -86,7 +87,7 @@ build-dirs:
 .PHONY: container
 container: all build-dirs
 	cp Dockerfile _output/bin/$(GOOS)/$(GOARCH)/Dockerfile
-	docker build -t $(IMAGE) -f _output/bin/$(GOOS)/$(GOARCH)/Dockerfile _output/bin/$(GOOS)/$(GOARCH)
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE) -f .
 
 .PHONY: push
 push: container
