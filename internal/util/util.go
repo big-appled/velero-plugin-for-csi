@@ -136,6 +136,16 @@ func GetVolumeSnapshotClassForStorageClass(provisioner string, snapshotClient sn
 			return &sc, nil
 		}
 	}
+	fmt.Println("warning: cannot find matching provisioner from storageclass to volumesnapshotclass. will try to search matching label")
+
+	for _, sc := range snapshotClasses.Items {
+		annotationValue, hasAnnotationsSelector := sc.Annotations[VolumeSnapshotClassProvisionerAnnotation]
+		if hasAnnotationsSelector {
+			if annotationValue == provisioner {
+				return &sc, nil
+			}
+		}
+	}
 	return nil, errors.Errorf("failed to get volumesnapshotclass for provisioner %s, ensure that the desired volumesnapshot class has the %s label", provisioner, VolumeSnapshotClassSelectorLabel)
 }
 
