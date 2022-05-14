@@ -264,6 +264,16 @@ func AddAnnotations(o *metav1.ObjectMeta, vals map[string]string) {
 	}
 }
 
+// RemoveAnnotations removes the supplied key-values to the annotations on the object
+func RemoveAnnotations(o *metav1.ObjectMeta, vals []string) {
+	if o.Annotations == nil {
+		return
+	}
+	for _, v := range vals {
+		delete(o.Annotations, v)
+	}
+}
+
 // AddLabels adds the supplied key-values to the labels on the object
 func AddLabels(o *metav1.ObjectMeta, vals map[string]string) {
 	if o.Labels == nil {
