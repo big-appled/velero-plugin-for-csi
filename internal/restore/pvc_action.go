@@ -144,6 +144,7 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 	}
 
 	resetPVCSpec(&pvc, volumeSnapshotName)
+	util.RemoveAnnotations(&pvc.ObjectMeta, []string{util.VolumeSnapshotLabel})
 
 	pvcMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&pvc)
 	if err != nil {
