@@ -118,6 +118,18 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 		}, nil
 	}
 
+	// check if PVCDataSourceKey set/
+	// if set, it means we need to remove/replace the datasource.
+	// So just return here, and ys1000-plugin will handle that case.
+	if input.Restore.Annotations != nil {
+		_, ok := input.Restore.Annotations[util.PVCDataSourceKey]
+		if ok {
+			return &velero.RestoreItemActionExecuteOutput{
+				UpdatedItem: input.Item,
+			}, nil
+		}
+	}
+
 	_, snapClient, err := util.GetClients()
 	if err != nil {
 		return nil, errors.WithStack(err)
