@@ -31,6 +31,21 @@ docker build -t swr.cn-east-3.myhuaweicloud.com/jibu-dev/velero/velero-plugin-fo
 
 4. push image
 
+velero installation example:
+
+- download velero-v1.7.2-linux-arm64.tar.gz for arm support
+- install velero with arm version plugin
+
+```
+./velero install --provider aws --plugins=swr.cn-east-3.myhuaweicloud.com/jibu-dev/velero/velero-plugin-for-csi-arm64:v0.2.0,swr.cn-east-3.myhuaweicloud.com/jibu-dev/velero/velero-plugin-for-aws-arm64:v1.3.1 --bucket gyj-test-1 --secret-file ./credentials --use-volume-snapshots=true --use-restic --backup-location-config region=default,s3ForcePathStyle="true",s3Url=https://obs.cn-east-3.myhuaweicloud.com --prefix velero --features=EnableAPIGroupVersions
+
+[root@arm-test-70569 ~]# kubectl -n velero get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+restic-72s7z              1/1     Running   0          4m29s
+velero-578dbb569f-sj47p   1/1     Running   0          4m29s
+
+```
+
 # Velero CSI plugins
 
 
