@@ -1,5 +1,36 @@
 [![Build Status][101]][102]
 
+
+# step for arm image build
+
+1. `make shell` to build image with specific go env
+
+2. set environment for arm compile and compile in container
+```
+export GOARCH=arm64
+export GOOS=linux
+export GOPROXY=https://goproxy.cn,direct
+
+make local
+
+```
+3. exit container and use Dockerfile-arm64 for image build
+```
+# exit
+[root@arm-test-70569 velero-plugin-for-csi-0.2.0]# find _output/
+_output/
+_output/bin
+_output/bin/linux
+_output/bin/linux/amd64
+_output/bin/linux/arm64
+_output/bin/linux/arm64/velero-plugin-for-csi
+
+cp Dockerfile-arm64 _output/bin/linux/arm64/Dockerfile
+docker build -t swr.cn-east-3.myhuaweicloud.com/jibu-dev/velero/velero-plugin-for-csi-arm64:v0.2.0 -f _output/bin/linux/arm64/Dockerfile _output/bin/linux/arm64/
+```
+
+4. push image
+
 # Velero CSI plugins
 
 
