@@ -1,0 +1,28 @@
+# syntax = docker/dockerfile:1.3.1
+
+FROM golang:1.17.13 as builder
+
+WORKDIR /
+
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+ARG GOPROXY=https://goproxy.cn,direct
+
+COPY go.mod go.sum ./
+
+# Get dependencies - will also be cached if we won't change mod/sum
+RUN --mount=type=cache,target=/go/pkg,id=go-mod-cache,sharing=locked \
+    go mod download
+
+COPY internal internal
+COPY main.go main.go
+
+RUN --mount=type=cache,target=/go/pkg,id=go-mod-cache,sharing=locked \
+    go build -o /velero-plugin-for-csi ./main.go
+
+FROM busybox:1.33.1 as busybox
+
+FROM scratch
+COPY --from=builder /velero-plugin-for-csi /plugins/
+COPY --from=busybox /bin/cp /bin/cp
+USER 65532:65532
+ENTRYPOINT ["cp", "/plugins/velero-plugin-for-csi", "/target/."]

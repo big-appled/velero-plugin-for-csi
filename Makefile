@@ -24,6 +24,12 @@ TAG ?= dev
 IMAGE ?= $(IMAGE_NAME):$(TAG)
 IMAGE_JIBU = registry.cn-shanghai.aliyuncs.com/jibudata/velero-plugin-for-csi:v0.2.0-jibu-9f21dd3
 
+# Jibu version and tag
+DATE:=$(shell date +'%Y%m%d%H%M')
+COMMITID=$(shell git rev-parse --short HEAD)
+JIBU_VERSION ?= v0.2.0-jibu-$(COMMITID)-$(DATE)
+JIBU_IMG ?= registry.cn-shanghai.aliyuncs.com/jibudata/velero-plugin-for-csi:$(JIBU_VERSION)
+
 # Which architecture to build - see $(ALL_ARCH) for options.
 # if the 'local' rule is being run, detect the ARCH from 'go env'
 # if it wasn't specified by the caller.
@@ -128,3 +134,9 @@ changelog:
 clean:
 	@echo "cleaning"
 	rm -rf .go _output
+
+csi.image:
+	DOCKER_BUILDKIT=1 docker build -f Dockerfile.ci -t $(JIBU_IMG) .
+
+csi.push: csi.image
+	docker push $(JIBU_IMG)
