@@ -120,6 +120,37 @@ func IsPVCBackedUpByRestic(pvcNamespace, pvcName string, podClient corev1client.
 	return false, nil
 }
 
+func IsPVCExcluded(pvcNamespace, pvcName string, podClient corev1client.PodsGetter) (bool, error) {
+	pods, err := GetPodsUsingPVC(pvcNamespace, pvcName, podClient)
+	if err != nil {
+		return false, errors.WithStack(err)
+	}
+
+	for _, p := range pods {
+		volsToExclude := getVolumesToExclude(&p)
+		if len(volsToExclude) > 0 {
+			volName, err := GetPodVolumeNameForPVC(p, pvcName)
+			if err != nil {
+				return false, err
+			}
+			if Contains(volsToExclude, volName) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+func getVolumesToExclude(obj metav1.Object) []string {
+	annotations := obj.GetAnnotations()
+	if annotations == nil {
+		return nil
+	}
+
+	return strings.Split(annotations[restic.VolumesToExcludeAnnotation], ",")
+}
+
 // GetVolumeSnapshotClassForStorageClass returns a VolumeSnapshotClass for the supplied volume provisioner/ driver name.
 func GetVolumeSnapshotClassForStorageClass(provisioner string, snapshotClient snapshotter.SnapshotV1beta1Interface) (*snapshotv1beta1api.VolumeSnapshotClass, error) {
 	snapshotClasses, err := snapshotClient.VolumeSnapshotClasses().List(context.TODO(), metav1.ListOptions{})
