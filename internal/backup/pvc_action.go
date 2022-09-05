@@ -94,6 +94,15 @@ func (p *PVCBackupItemAction) Execute(item runtime.Unstructured, backup *velerov
 		return item, nil, nil
 	}
 
+	isPVCExcluded, err := util.IsPVCExcluded(pvc.Namespace, pvc.Name, client.CoreV1())
+	if err != nil {
+		return nil, nil, errors.WithStack(err)
+	}
+	if isPVCExcluded {
+		p.Log.Infof("Skipping PVC %s/%s since it is excluded by annotations", pvc.Namespace, pvc.Name, pv.Name)
+		return item, nil, nil
+	}
+
 	// no storage class: we don't know how to map to a VolumeSnapshotClass
 	if pvc.Spec.StorageClassName == nil {
 		return item, nil, errors.Errorf("Cannot snapshot PVC %s/%s, PVC has no storage class.", pvc.Namespace, pvc.Name)
