@@ -136,7 +136,7 @@ func (p *VolumeSnapshotBackupItemAction) Execute(item runtime.Unstructured, back
 			// volumesnapshotcontents. We do that by adding the "velero.io/backup-name" label on the volumesnapshotcontent.
 			// Further, we want to add this label only on volumesnapshotcontents that were created during an ongoing velero backup.
 
-			pb := []byte(fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s", "%s":"%s"}}}`, velerov1api.BackupNameLabel, label.GetValidName(backup.Name)))
+			pb := []byte(fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s"}}}`, velerov1api.BackupNameLabel, label.GetValidName(backup.Name)))
 			if value, ok := backup.Labels[util.TenantJobNamespace]; ok {
 				pb = []byte(fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s", "%s":"%s"}}}`, velerov1api.BackupNameLabel, label.GetValidName(backup.Name), util.TenantJobNamespace, value))
 			}
