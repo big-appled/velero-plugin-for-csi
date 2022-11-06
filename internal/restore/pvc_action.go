@@ -147,7 +147,7 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 			return nil, errors.WithStack(err)
 		}
 
-		vs, err := snapClient.SnapshotV1beta1().VolumeSnapshots(newNamespace).Get(context.TODO(), volumeSnapshotName, metav1.GetOptions{})
+		vs, err := snapClient.SnapshotV1().VolumeSnapshots(newNamespace).Get(context.TODO(), volumeSnapshotName, metav1.GetOptions{})
 		if err != nil {
 			return nil, errors.Wrapf(err, fmt.Sprintf("Failed to get Volumesnapshot %s/%s to restore PVC %s/%s", newNamespace, volumeSnapshotName, newNamespace, pvc.Name))
 		}
