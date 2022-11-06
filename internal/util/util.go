@@ -196,8 +196,9 @@ func GetVolumeSnapshotContentForVolumeSnapshot(volSnap *snapshotv1api.VolumeSnap
 
 	// We'll wait 10m for the VSC to be reconciled polling every 5s
 	// TODO: make this timeout configurable.
-	timeout := 10 * time.Minute
-	interval := 5 * time.Second
+	// TODO: https://github.com/vmware-tanzu/velero/pull/5104/files
+	timeout := 20 * time.Minute
+	interval := 10 * time.Second
 	var snapshotContent *snapshotv1api.VolumeSnapshotContent
 
 	err := wait.PollImmediate(interval, timeout, func() (bool, error) {
