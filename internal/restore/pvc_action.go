@@ -161,11 +161,10 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 			// VolumeSnapshot
 			setPVCStorageResourceRequest(&pvc, restoreSize, p.Log)
 		}
+		resetPVCSpec(&pvc, volumeSnapshotName)
 	}
 
-	resetPVCSpec(&pvc, volumeSnapshotName)
 	util.RemoveAnnotations(&pvc.ObjectMeta, []string{util.VolumeSnapshotLabel})
-
 	pvcMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&pvc)
 	if err != nil {
 		return nil, errors.WithStack(err)
