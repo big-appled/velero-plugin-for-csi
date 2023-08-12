@@ -38,7 +38,8 @@ import (
 const (
 	AnnBindCompleted      = "pv.kubernetes.io/bind-completed"
 	AnnBoundByController  = "pv.kubernetes.io/bound-by-controller"
-	AnnStorageProvisioner = "volume.beta.kubernetes.io/storage-provisioner"
+	AnnBetaStorageProvisioner = "volume.beta.kubernetes.io/storage-provisioner"
+	AnnStorageProvisioner = "volume.kubernetes.io/storage-provisioner"
 	AnnSelectedNode       = "volume.kubernetes.io/selected-node"
 )
 
@@ -103,7 +104,7 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 	p.Log.Infof("Starting PVCRestoreItemAction for PVC %s/%s", pvc.Namespace, pvc.Name)
 
 	removePVCAnnotations(&pvc,
-		[]string{AnnBindCompleted, AnnBoundByController, AnnStorageProvisioner, AnnSelectedNode})
+		[]string{AnnBindCompleted, AnnBoundByController, AnnBetaStorageProvisioner, AnnStorageProvisioner, AnnSelectedNode})
 
 	// If cross-namespace restore is configured, change the namespace
 	// for PVC object to be restored
