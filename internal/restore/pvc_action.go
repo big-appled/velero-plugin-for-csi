@@ -24,7 +24,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/velero/pkg/util/boolptr"
 
-	snapshotv1beta1api "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1beta1"
 	corev1api "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
