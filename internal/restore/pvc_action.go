@@ -35,11 +35,11 @@ import (
 )
 
 const (
-	AnnBindCompleted      = "pv.kubernetes.io/bind-completed"
-	AnnBoundByController  = "pv.kubernetes.io/bound-by-controller"
+	AnnBindCompleted          = "pv.kubernetes.io/bind-completed"
+	AnnBoundByController      = "pv.kubernetes.io/bound-by-controller"
 	AnnBetaStorageProvisioner = "volume.beta.kubernetes.io/storage-provisioner"
-	AnnStorageProvisioner = "volume.kubernetes.io/storage-provisioner"
-	AnnSelectedNode       = "volume.kubernetes.io/selected-node"
+	AnnStorageProvisioner     = "volume.kubernetes.io/storage-provisioner"
+	AnnSelectedNode           = "volume.kubernetes.io/selected-node"
 )
 
 // PVCRestoreItemAction is a restore item action plugin for Velero
@@ -137,8 +137,8 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 	if boolptr.IsSetToFalse(input.Restore.Spec.RestorePVs) {
 		p.Log.Infof("Restore did not request for PVs to be restored from snapshot %s/%s.", input.Restore.Namespace, input.Restore.Name)
 		pvc.Spec.VolumeName = ""
-		pvc.Spec.DataSource = &corev1api.TypedLocalObjectReference{}
-		pvc.Spec.DataSourceRef = &corev1api.TypedLocalObjectReference{}
+		pvc.Spec.DataSource = nil
+		pvc.Spec.DataSourceRef = nil
 	} else {
 		_, snapClient, err := util.GetClients()
 		if err != nil {
