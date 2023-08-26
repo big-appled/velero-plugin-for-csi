@@ -23,8 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/velero/pkg/util/boolptr"
-
-	snapshotv1api "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
+	
 	corev1api "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,10 +35,11 @@ import (
 )
 
 const (
-	AnnBindCompleted      = "pv.kubernetes.io/bind-completed"
-	AnnBoundByController  = "pv.kubernetes.io/bound-by-controller"
-	AnnStorageProvisioner = "volume.beta.kubernetes.io/storage-provisioner"
-	AnnSelectedNode       = "volume.kubernetes.io/selected-node"
+	AnnBindCompleted          = "pv.kubernetes.io/bind-completed"
+	AnnBoundByController      = "pv.kubernetes.io/bound-by-controller"
+	AnnBetaStorageProvisioner = "volume.beta.kubernetes.io/storage-provisioner"
+	AnnStorageProvisioner     = "volume.kubernetes.io/storage-provisioner"
+	AnnSelectedNode           = "volume.kubernetes.io/selected-node"
 )
 
 // PVCRestoreItemAction is a restore item action plugin for Velero
@@ -68,14 +68,17 @@ func removePVCAnnotations(pvc *corev1api.PersistentVolumeClaim, remove []string)
 }
 
 func resetPVCSpec(pvc *corev1api.PersistentVolumeClaim, vsName string) {
+	var apiGroup = "snapshot.storage.k8s.io"
 	// Restore operation for the PVC will use the volumesnapshot as the data source.
 	// So clear out the volume name, which is a ref to the PV
 	pvc.Spec.VolumeName = ""
-	pvc.Spec.DataSource = &corev1api.TypedLocalObjectReference{
-		APIGroup: &snapshotv1api.SchemeGroupVersion.Group,
+	dataSourceRef := &corev1api.TypedLocalObjectReference{
+		APIGroup: &apiGroup,
 		Kind:     "VolumeSnapshot",
 		Name:     vsName,
 	}
+	pvc.Spec.DataSource = dataSourceRef
+	pvc.Spec.DataSourceRef = dataSourceRef
 }
 
 func setPVCStorageResourceRequest(pvc *corev1api.PersistentVolumeClaim, restoreSize resource.Quantity, log logrus.FieldLogger) {
@@ -103,7 +106,7 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 	p.Log.Infof("Starting PVCRestoreItemAction for PVC %s/%s", pvc.Namespace, pvc.Name)
 
 	removePVCAnnotations(&pvc,
-		[]string{AnnBindCompleted, AnnBoundByController, AnnStorageProvisioner, AnnSelectedNode})
+		[]string{AnnBindCompleted, AnnBoundByController, AnnBetaStorageProvisioner, AnnStorageProvisioner, AnnSelectedNode})
 
 	// If cross-namespace restore is configured, change the namespace
 	// for PVC object to be restored
@@ -134,8 +137,8 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 	if boolptr.IsSetToFalse(input.Restore.Spec.RestorePVs) {
 		p.Log.Infof("Restore did not request for PVs to be restored from snapshot %s/%s.", input.Restore.Namespace, input.Restore.Name)
 		pvc.Spec.VolumeName = ""
-		pvc.Spec.DataSource = &corev1api.TypedLocalObjectReference{}
-		pvc.Spec.DataSourceRef = &corev1api.TypedLocalObjectReference{}
+		pvc.Spec.DataSource = nil
+		pvc.Spec.DataSourceRef = nil
 	} else {
 		_, snapClient, err := util.GetClients()
 		if err != nil {
