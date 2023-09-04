@@ -110,13 +110,15 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 
 	// If cross-namespace restore is configured, change the namespace
 	// for PVC object to be restored
-	if val, ok := input.Restore.Spec.NamespaceMapping[pvc.GetNamespace()]; ok {
-		pvc.SetNamespace(val)
-	}
+	newNamespace, ok := input.Restore.Spec.NamespaceMapping[pvc.GetNamespace()]
+    if !ok {
+        // Use original namespace
+        newNamespace = pvc.Namespace
+    }
 
 	volumeSnapshotName, ok := pvc.Annotations[util.VolumeSnapshotLabel]
 	if !ok {
-		p.Log.Infof("Skipping PVCRestoreItemAction for PVC %s/%s, PVC does not have a CSI volumesnapshot.", pvc.Namespace, pvc.Name)
+		p.Log.Infof("Skipping PVCRestoreItemAction for PVC %s/%s, PVC does not have a CSI volumesnapshot.", newNamespace, pvc.Name)
 		return &velero.RestoreItemActionExecuteOutput{
 			UpdatedItem: input.Item,
 		}, nil
@@ -145,9 +147,9 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 			return nil, errors.WithStack(err)
 		}
 
-		vs, err := snapClient.SnapshotV1beta1().VolumeSnapshots(pvc.Namespace).Get(context.TODO(), volumeSnapshotName, metav1.GetOptions{})
+		vs, err := snapClient.SnapshotV1beta1().VolumeSnapshots(newNamespace).Get(context.TODO(), volumeSnapshotName, metav1.GetOptions{})
 		if err != nil {
-			return nil, errors.Wrapf(err, fmt.Sprintf("Failed to get Volumesnapshot %s/%s to restore PVC %s/%s", pvc.Namespace, volumeSnapshotName, pvc.Namespace, pvc.Name))
+			return nil, errors.Wrapf(err, fmt.Sprintf("Failed to get Volumesnapshot %s/%s to restore PVC %s/%s", newNamespace, volumeSnapshotName, newNamespace, pvc.Name))
 		}
 
 		if _, exists := vs.Annotations[util.VolumeSnapshotRestoreSize]; exists {
@@ -172,7 +174,7 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	p.Log.Infof("Returning from PVCRestoreItemAction for PVC %s/%s", pvc.Namespace, pvc.Name)
+	p.Log.Infof("Returning from PVCRestoreItemAction for PVC %s/%s", newNamespace, pvc.Name)
 
 	return &velero.RestoreItemActionExecuteOutput{
 		UpdatedItem: &unstructured.Unstructured{Object: pvcMap},
