@@ -66,7 +66,11 @@ func (p *VolumeSnapshotRestoreItemAction) Execute(input *velero.RestoreItemActio
 
 	// If cross-namespace restore is configured, change the namespace
 	// for VolumeSnapshot object to be restored
-	newNamespace, _ := input.Restore.Spec.NamespaceMapping[vs.GetNamespace()]
+	newNamespace, ok := input.Restore.Spec.NamespaceMapping[vs.GetNamespace()]
+    if !ok {
+        // Use original namespace
+        newNamespace = vs.Namespace
+    }
 
 	_, snapClient, err := util.GetClients()
 	if err != nil {

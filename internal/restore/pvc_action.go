@@ -110,7 +110,11 @@ func (p *PVCRestoreItemAction) Execute(input *velero.RestoreItemActionExecuteInp
 
 	// If cross-namespace restore is configured, change the namespace
 	// for PVC object to be restored
-	newNamespace, _ := input.Restore.Spec.NamespaceMapping[pvc.GetNamespace()]
+	newNamespace, ok := input.Restore.Spec.NamespaceMapping[pvc.GetNamespace()]
+    if !ok {
+        // Use original namespace
+        newNamespace = pvc.Namespace
+    }
 
 	volumeSnapshotName, ok := pvc.Annotations[util.VolumeSnapshotLabel]
 	if !ok {
