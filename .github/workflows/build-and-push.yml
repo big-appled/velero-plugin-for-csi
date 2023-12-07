@@ -42,7 +42,7 @@ jobs:
         git config user.email "test@example.com"
         git config user.name "test"
         git checkout -b jibu-cherry-pick
-        git cherry-pick c2673dab7ab70a13df998a55ae73ca3fa5cf6020
+        git cherry-pick bd12fd2f09b96207b56dc23531b1f9c5d81e08d4
         GOPROXY=https://proxy.golang.org,direct TAG=${{needs.generate.outputs.image-tag}} make csi.push
       env:
         TARGET: ${{ github.event.inputs.target }}
