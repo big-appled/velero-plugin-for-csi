@@ -140,7 +140,6 @@ func (p *VolumeSnapshotBackupItemAction) Execute(item runtime.Unstructured, back
 			if value, ok := backup.Labels[util.TenantJobNamespace]; ok {
 				pb = []byte(fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s", "%s":"%s"}}}`, velerov1api.BackupNameLabel, label.GetValidName(backup.Name), util.TenantJobNamespace, value))
 			}
-
 			if _, vscPatchError := snapshotClient.SnapshotV1beta1().VolumeSnapshotContents().Patch(context.TODO(), vsc.Name, types.MergePatchType, pb, metav1.PatchOptions{}); vscPatchError != nil {
 				p.Log.Warnf("Failed to patch volumesnapshotcontent %s: %v", vsc.Name, vscPatchError)
 			}
