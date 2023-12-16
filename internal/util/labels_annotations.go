@@ -37,5 +37,6 @@ const (
 	PrefixedSnapshotterSecretNameKey      = "csi.storage.k8s.io/snapshotter-secret-name"
 	PrefixedSnapshotterSecretNamespaceKey = "csi.storage.k8s.io/snapshotter-secret-namespace"
 
-	PVCDataSourceKey = "jibudata.com/pvc-datasource-plugin"
+	PVCDataSourceKey   = "jibudata.com/pvc-datasource-plugin"
+	TenantJobNamespace = "ys.jibudata.com/tenant-backupjob-ns"
 )
