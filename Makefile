@@ -17,17 +17,16 @@ BIN ?= velero-plugin-for-csi
 
 BUILD_IMAGE ?= golang:1.16-stretch
 
-REGISTRY ?= velero
+REGISTRY ?= jibutech-registry.cn-hangzhou.cr.aliyuncs.com/ys1000
 IMAGE_NAME ?= $(REGISTRY)/velero-plugin-for-csi
 TAG ?= dev
 
 IMAGE ?= $(IMAGE_NAME):$(TAG)
-IMAGE_JIBU = registry.cn-shanghai.aliyuncs.com/jibudata/velero-plugin-for-csi:v0.2.0-jibu-9f21dd3
 
 # Jibu version and tag
 IMAGE_TAG:=$(shell ./hack/image-tag)
 TAG ?= ${IMAGE_TAG}
-JIBU_IMG ?= registry.cn-shanghai.aliyuncs.com/jibutech/velero-plugin-for-csi:$(TAG)
+JIBU_IMG ?= ${REGISTRY}/velero-plugin-for-csi:$(TAG)
 
 # Which architecture to build - see $(ALL_ARCH) for options.
 # if the 'local' rule is being run, detect the ARCH from 'go env'
@@ -93,7 +92,7 @@ build-dirs:
 .PHONY: container
 container: #all build-dirs
 	cp Dockerfile _output/bin/$(GOOS)/$(GOARCH)/Dockerfile
-	docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE_JIBU) . --push
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(JIBU_IMG) . --push
 
 .PHONY: push
 push: container
